@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import FotoItem from './FotoItem';
-import LogicaTimeline from '../logicas/LogicaTimeline';
+import TimelineApi from '../stores/TimelineApi';
 
 export default class Timeline extends Component {
 
@@ -8,7 +8,6 @@ export default class Timeline extends Component {
         super(props);
         this.state = { fotos: [] };
         this.login = this.props.login;
-        this.logicaTimeline = new LogicaTimeline([]);
     }
 
     componentDidMount() {
@@ -16,8 +15,8 @@ export default class Timeline extends Component {
     }
 
     componentWillMount() {
-        this.logicaTimeline.subscribe(fotos => {
-            this.setState({ fotos: fotos });
+        this.props.store.subscribe(() => {
+            this.setState({ fotos: this.props.store.getState() });
         })
     }
 
@@ -33,16 +32,17 @@ export default class Timeline extends Component {
         else {
             urlPerfil = `http://localhost:8080/api/public/fotos/${props.login}`;
         }
-        
-        this.logicaTimeline.lista(urlPerfil)
+        // TimelineApi.lista(urlPerfil, this.props.store);
+        this.props.store.dispatch(TimelineApi.lista(urlPerfil));
+        // this.props.store.lista(urlPerfil)
     }
 
     like(fotoId) {
-        this.logicaTimeline.like(fotoId);
+        this.props.store.dispatch(TimelineApi.like(fotoId));
     }
 
     comenta(fotoId, comentario) {
-        this.logicaTimeline.comenta(fotoId, comentario);
+        this.props.store.dispatch(TimelineApi.comenta(fotoId, comentario));
     }
 
     render() {
