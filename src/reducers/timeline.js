@@ -1,34 +1,46 @@
+import { List } from 'immutable';
+
+
+
+function trocaFoto(lista, fotoId, callBackAtualizaPropriedades) {
+    const fotoEstadoAntigo = lista.find(foto => foto.id === fotoId)
+    const novasPropriedades = callBackAtualizaPropriedades(fotoEstadoAntigo);
+
+    const fotoEstadoNovo = Object.assign({}, fotoEstadoAntigo, novasPropriedades);
+    const indiceDaLista = lista.findIndex((foto) => foto.id === fotoId);
+    return lista.set(indiceDaLista, fotoEstadoNovo);
+}
+
 //REDUCER
-export function timeline(state = [], action) {
+export function timeline(state = new List(), action) {
+
+
     if (action.type === 'LISTAGEM') {
-        return action.fotos;
+        return new List(action.fotos);
     }
 
     if (action.type === 'COMENTARIO') {
-        const fotoId = action.fotoId;
-        const novoComentario = action.novoComentario;
-
-        const fotoAchada = state.find(foto => foto.id === fotoId)
-        fotoAchada.comentarios.push(novoComentario);
-
-        return state;
+        return trocaFoto(state, action.fotoId, (fotoEstadoAntigo) => {
+            const novosComentarios = fotoEstadoAntigo.comentarios.concat(action.novoComentario);
+            return { comentarios: novosComentarios };
+        });
     }
 
     if (action.type === 'LIKE') {
-        const fotoAchada = state.find(foto => foto.id === action.fotoId);
-        fotoAchada.likeada = !fotoAchada.likeada;
+        return trocaFoto(state, action.fotoId, (fotoEstadoAntigo) => {
+            const likeada = !fotoEstadoAntigo.likeada;
 
-        const possivelLiker = fotoAchada.likers.find(likerAtual => likerAtual.login === action.liker.login);
+            const possivelLiker = fotoEstadoAntigo.likers.find(likerAtual => likerAtual.login === action.liker.login);
+            let novosLikers;
+            if (possivelLiker === undefined) {
+                novosLikers = fotoEstadoAntigo.likers.concat(action.liker);
+            } else {
+                novosLikers = fotoEstadoAntigo.likers.filter(likerAtual => likerAtual.login !== action.liker.login);
+            }
 
-        if (possivelLiker === undefined) {
-            fotoAchada.likers.push(action.liker);
-        } else {
-            const likers = fotoAchada.likers.filter(likerAtual => likerAtual.login !== action.liker.login);
-            fotoAchada.likers = likers
-        }
+            return { likeada, likers: novosLikers };
+        });
 
-
-        return state;
     }
 
     return state;

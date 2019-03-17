@@ -11,6 +11,15 @@ import { matchPattern } from 'react-router/lib/PatternUtils';
 import Login from './componentes/Login';
 import Logout from './componentes/Logout';
 
+import { createStore, applyMiddleware, combineReducers } from 'redux';
+import { timeline } from './reducers/timeline';
+import { notificacao } from './reducers/header';
+import thunkMiddleware from 'redux-thunk';
+import { Provider } from 'react-redux';
+const reducers = combineReducers({ timeline, notificacao });
+const store = createStore(reducers, applyMiddleware(thunkMiddleware));
+
+
 function verificaAutenticacao(nextState, replace) {
     const resultado = matchPattern('/timeline(/:login)', nextState.location.pathname);
     const enderecoPrivadoTimeline = resultado.paramValues[0] === undefined;
@@ -22,11 +31,13 @@ function verificaAutenticacao(nextState, replace) {
 
 
 ReactDOM.render(
-    <Router history={browserHistory}>
-        <Route path="/" component={Login} />
-        <Route path="/timeline(/:login)" component={App} onEnter={verificaAutenticacao} />
-        <Route path="/logout" component={Logout} />
-    </Router>
+    <Provider store={store}>
+        <Router history={browserHistory}>
+            <Route path="/" component={Login} />
+            <Route path="/timeline(/:login)" component={App} onEnter={verificaAutenticacao} />
+            <Route path="/logout" component={Logout} />
+        </Router>
+    </Provider>
     , document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change

@@ -1,16 +1,17 @@
 import React, { Component } from 'react';
-import PubSub from 'pubsub-js';
-import {Link} from 'react-router';
+import { Link } from 'react-router';
+import TimelineApi from '../stores/TimelineApi';
+import { connect } from 'react-redux';
 
-export default class Header extends Component {
+class Header extends Component {
+
+    constructor() {
+        super();
+    }
 
     pesquisa(event) {
         event.preventDefault();
-        fetch(`http://localhost:8080/api/public/fotos/${this.loginPesquisado.value}`)
-            .then(res => res.json())
-            .then(fotos => {
-                PubSub.publish('timeline', fotos)
-            });
+        this.props.pesquisa(this.loginPesquisado.value);
     }
 
 
@@ -30,6 +31,7 @@ export default class Header extends Component {
                 <nav>
                     <ul className="header-nav">
                         <li className="header-nav-item">
+                            <span>{this.props.msg}</span>
                             <Link to="/timeline">
                                 ♡
                   {/*                 ♥ */}
@@ -42,3 +44,20 @@ export default class Header extends Component {
         );
     }
 }
+
+
+const mapStateToProps = state => {
+    return { msg: state.notificacao }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        pesquisa: login => {
+            dispatch(TimelineApi.pesquisa(login));
+        },
+    }
+}
+const HeaderContainer = connect(mapStateToProps, mapDispatchToProps)(Header);
+
+
+export default HeaderContainer

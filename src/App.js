@@ -1,11 +1,6 @@
 import React, { Component } from 'react';
 import Header from './componentes/Header';
 import Timeline from './componentes/Timeline';
-import { createStore, applyMiddleware } from 'redux';
-import { timeline } from './reducers/timeline';
-import thunkMiddleware from 'redux-thunk';
-
-const store = createStore(timeline, applyMiddleware(thunkMiddleware));
 
 class App extends Component {
   render() {
@@ -13,11 +8,14 @@ class App extends Component {
       <div id="root">
         <div className="main">
           <Header />
-          <Timeline login={this.props.params.login} store={store} />
+          <Timeline login={this.props.params.login} />
         </div>
       </div>
     );
   }
 }
 
+App.contextType = {
+  store: React.PropTypes.object.isRequired
+}
 export default App;

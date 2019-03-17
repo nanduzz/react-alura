@@ -1,11 +1,13 @@
+import { listagem, comentario, like, notifica } from '../actions/actionCreator';
+
 export default class TimelineApi {
 
-    static comenta(fotoId, comentario) {
+    static comenta(fotoId, textoComentario) {
         return dispatch => {
 
             const requestInfo = {
                 method: 'POST',
-                body: JSON.stringify({ texto: comentario }),
+                body: JSON.stringify({ texto: textoComentario }),
                 headers: new Headers({
                     'Content-type': 'application/json'
                 })
@@ -19,7 +21,7 @@ export default class TimelineApi {
                     throw new Error('Não foi possível comentar');
                 })
                 .then(novoComentario => {
-                    dispatch({ type: 'COMENTARIO', fotoId, novoComentario });
+                    dispatch(comentario(fotoId, novoComentario));
                     return novoComentario;
                 })
         }
@@ -38,7 +40,7 @@ export default class TimelineApi {
                     }
                 })
                 .then(liker => {
-                    dispatch({ type: 'LIKE', fotoId, liker });
+                    dispatch(like(fotoId, liker));
                     return liker;
                 });
         }
@@ -49,10 +51,23 @@ export default class TimelineApi {
             fetch(urlPerfil)
                 .then(response => response.json())
                 .then(fotos => {
-                    dispatch({ type: 'LISTAGEM', fotos });
+                    dispatch(listagem(fotos));
                     return fotos;
                 });
         }
     }
 
+    static pesquisa(login) {
+        return dispatch => {
+            fetch(`http://localhost:8080/api/public/fotos/${login}`)
+                .then(res => res.json())
+                .then(fotos => {
+                    if(fotos.length === 0){
+                        dispatch(notifica('usuário não encontrado'));
+                    }
+                    dispatch(listagem(fotos));
+                    return fotos;
+                });
+        }
+    }
 }

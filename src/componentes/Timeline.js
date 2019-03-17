@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import FotoItem from './FotoItem';
 import TimelineApi from '../stores/TimelineApi';
+import { connect } from 'react-redux';
 
-export default class Timeline extends Component {
+class Timeline extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { fotos: [] };
         this.login = this.props.login;
     }
 
@@ -14,14 +14,11 @@ export default class Timeline extends Component {
         this.carregaFotos(this.props);
     }
 
-    componentWillMount() {
-        this.props.store.subscribe(() => {
-            this.setState({ fotos: this.props.store.getState() });
-        })
-    }
-
     componentWillReceiveProps(nextProps) {
-        this.carregaFotos(nextProps)
+        if (nextProps.login !== this.login) {
+            this.login = nextProps.login;
+            this.carregaFotos(nextProps)
+        }
     }
 
     carregaFotos(props) {
@@ -32,26 +29,15 @@ export default class Timeline extends Component {
         else {
             urlPerfil = `http://localhost:8080/api/public/fotos/${props.login}`;
         }
-        // TimelineApi.lista(urlPerfil, this.props.store);
-        this.props.store.dispatch(TimelineApi.lista(urlPerfil));
-        // this.props.store.lista(urlPerfil)
-    }
-
-    like(fotoId) {
-        this.props.store.dispatch(TimelineApi.like(fotoId));
-    }
-
-    comenta(fotoId, comentario) {
-        this.props.store.dispatch(TimelineApi.comenta(fotoId, comentario));
+        this.props.lista(urlPerfil);
     }
 
     render() {
         return (
             <div className="fotos container">
-
                 {
-                    this.state.fotos.map(foto => {
-                        return <FotoItem key={foto.id} foto={foto} like={this.like.bind(this)} comenta={this.comenta.bind(this)} />
+                    this.props.fotos.map(foto => {
+                        return <FotoItem key={foto.id} foto={foto} like={this.props.like} comenta={this.props.comenta} />
                     })
                 }
 
@@ -59,3 +45,24 @@ export default class Timeline extends Component {
         );
     }
 }
+
+const mapStateToProps = state => {
+    return { fotos: state.timeline }
+}
+const mapDispatchToProps = dispatch => {
+    return {
+        like: fotoId => {
+            dispatch(TimelineApi.like(fotoId));
+        },
+        comenta: (fotoId, comentario) => {
+            dispatch(TimelineApi.comenta(fotoId, comentario));
+        },
+        lista : (urlPerfil)=> {
+            dispatch(TimelineApi.lista(urlPerfil));
+        }
+    }
+}
+const TimeLineContainer = connect(mapStateToProps, mapDispatchToProps)(Timeline);
+
+
+export default TimeLineContainer
